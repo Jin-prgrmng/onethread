@@ -7,10 +7,25 @@ import PendingBuffer from './components/PendingBuffer';
 import WorkLog from './components/WorkLog';
 import SettingsPanel from './components/SettingsPanel';
 
+type Theme = 'light' | 'dark';
+
+function getInitialTheme(): Theme {
+  const saved = localStorage.getItem('onethread_theme');
+  if (saved === 'light' || saved === 'dark') return saved;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
 export default function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [captureOpen, setCaptureOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+
+  // テーマ適用
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('onethread_theme', theme);
+  }, [theme]);
 
   // 初回ロード
   useEffect(() => {
@@ -48,6 +63,13 @@ export default function App() {
             aria-label="メモを追加"
           >
             メモ +
+          </button>
+          <button
+            className="btn btn-ghost btn-small theme-toggle"
+            onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+            aria-label="テーマ切替"
+          >
+            {theme === 'dark' ? 'ライト' : 'ダーク'}
           </button>
           <button
             className="btn btn-ghost btn-small"

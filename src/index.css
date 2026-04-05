@@ -12,8 +12,9 @@
   --danger: #C0392B;
 }
 
+/* システム設定がダーク かつ 手動指定なし */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #141414;
     --text: #E8E8E8;
     --text-muted: #888;
@@ -23,6 +24,18 @@
     --border: #2A2A2A;
     --danger: #E74C3C;
   }
+}
+
+/* 手動でダークを選択した場合 */
+:root[data-theme='dark'] {
+  --bg: #141414;
+  --text: #E8E8E8;
+  --text-muted: #888;
+  --accent: #52B788;
+  --accent-hover: #74C69D;
+  --surface: #1E1E1E;
+  --border: #2A2A2A;
+  --danger: #E74C3C;
 }
 
 /* ━━━ リセット・基盤 ━━━ */

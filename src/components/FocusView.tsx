@@ -79,7 +79,7 @@ export default function FocusView({ task, onComplete, onSkip, onPend, onAddTask,
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSubmit()}
                 placeholder="例：この段落を書く"
                 autoFocus
               />

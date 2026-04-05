@@ -43,7 +43,7 @@ export default function CaptureModal({ open, onClose, onCapture }: Props) {
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+          onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSubmit()}
           placeholder="浮かんだことを入力…"
         />
         <div className="modal-actions">

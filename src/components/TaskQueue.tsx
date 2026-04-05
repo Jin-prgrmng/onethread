@@ -93,7 +93,7 @@ export default function TaskQueue({ queue, onReorder, onSetAsCurrent, onAddTask 
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+          onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleAdd()}
           placeholder="タスクを追加…"
         />
         <button className="btn btn-ghost btn-small" onClick={handleAdd} disabled={!inputText.trim()}>
