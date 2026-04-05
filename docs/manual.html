@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OneThread 使い方ガイド</title>
+  <style>
+    :root {
+      --bg: #FAFAF8;
+      --text: #1A1A1A;
+      --text-muted: #666;
+      --accent: #2D6A4F;
+      --accent-light: #52B788;
+      --surface: #F0EFED;
+      --border: #E0DFD8;
+      --code-bg: #EDECEA;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141414;
+        --text: #E8E8E8;
+        --text-muted: #888;
+        --accent: #52B788;
+        --accent-light: #74C69D;
+        --surface: #1E1E1E;
+        --border: #2A2A2A;
+        --code-bg: #252525;
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+      font-size: 16px;
+      line-height: 1.8;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    /* ヘッダー */
+    .page-header {
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .page-header .label {
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    .page-header .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* セクション */
+    section {
+      margin-bottom: 3rem;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent);
+      border-left: 4px solid var(--accent);
+      padding-left: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 1.5rem 0 0.6rem;
+      color: var(--text);
+    }
+
+    p {
+      margin-bottom: 0.8rem;
+      color: var(--text);
+    }
+
+    /* アクセスボックス */
+    .access-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .access-box .url {
+      display: inline-block;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--code-bg);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      margin: 0.75rem 0;
+      word-break: break-all;
+    }
+
+    .access-box .note {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* ステップリスト */
+    .steps {
+      list-style: none;
+      counter-reset: step;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      flex-shrink: 0;
+      width: 1.8rem;
+      height: 1.8rem;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 0.1rem;
+    }
+
+    /* 画面構成図 */
+    .screen-diagram {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      white-space: pre;
+      overflow-x: auto;
+      color: var(--text);
+    }
+
+    /* テーブル */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+
+    th {
+      background: var(--surface);
+      color: var(--accent);
+      font-weight: 700;
+      text-align: left;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.6rem 0.9rem;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td {
+      background: var(--surface);
+    }
+
+    /* ショートカットバッジ */
+    kbd {
+      display: inline-block;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1rem 0.5rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+
+    /* ヒントボックス */
+    .hint {
+      background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+      border-left: 3px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      padding: 0.9rem 1.1rem;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    .hint strong {
+      color: var(--accent);
+    }
+
+    /* フローリスト */
+    .flow {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .flow li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    .flow li:last-child {
+      border-bottom: none;
+    }
+
+    .flow .num {
+      flex-shrink: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 0.15rem;
+    }
+
+    /* フッター */
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 600px) {
+      .page-header h1 { font-size: 1.5rem; }
+      .screen-diagram { font-size: 0.72rem; padding: 1rem; }
+      body { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ヘッダー -->
+  <header class="page-header">
+    <p class="label">User Guide</p>
+    <h1>OneThread 使い方ガイド</h1>
+    <p class="subtitle">シングルタスク集中支援ツール — 今やることは、常に1つだけ。</p>
+  </header>
+
+  <!-- 1. アクセス方法 -->
+  <section>
+    <h2>1. アプリにアクセスする</h2>
+
+    <p>OneThreadはインストール不要のWebアプリです。以下のURLをブラウザで開くだけで使えます。</p>
+
+    <div class="access-box">
+      <p>アクセスURL</p>
+      <span class="url">https://jin-prgrmng.github.io/onethread/</span>
+      <p class="note">データはブラウザ内に保存されます。ログインや登録は不要です。</p>
+    </div>
+
+    <h3>初回アクセスの手順</h3>
+    <ol class="steps">
+      <li>上記URLをブラウザのアドレスバーに入力してアクセスする</li>
+      <li>フォーカスビュー中央の入力欄に「今やること」を入力する</li>
+      <li>Enter キーまたは「開始」ボタンを押す</li>
+      <li>タスクが大きく表示されたら準備完了です</li>
+    </ol>
+
+    <div class="hint">
+      <strong>ヒント：</strong> スマートフォンでも使えます。ホーム画面に追加しておくとアプリのように起動できます（iOSは「共有 → ホーム画面に追加」、Androidは「メニュー → ホーム画面に追加」）。
+    </div>
+
+    <h3>ソースコード・開発環境</h3>
+    <p>GitHubリポジトリは以下で公開しています。ローカルで動かす場合は <kbd>npm run dev</kbd> を実行してください。</p>
+    <div class="access-box">
+      <span class="url">https://github.com/Jin-prgrmng/onethread</span>
+    </div>
+  </section>
+
+  <!-- 2. 基本的な考え方 -->
+  <section>
+    <h2>2. 基本的な考え方</h2>
+
+    <p>OneThreadは「全部考えてよい、だが今やるのは1つだけ」という原則をUIで実現しています。</p>
+    <p>作業中に浮かんだことはすぐメモして「保留バッファ」に放り込み、今の作業には戻る。整理・分類・優先度付けは後でまとめてやる。このサイクルで、思考のオーバーフローを防ぎながら作業を前に進めます。</p>
+
+    <div class="hint">
+      <strong>設計の意図：</strong>「整理してから始める」という思考パターンを断ち切るために、未整理のまま保留できる仕組みを中心に置いています。完璧なリストを作る前に、まず1つ動かすことが目的です。
+    </div>
+  </section>
+
+  <!-- 3. 画面構成 -->
+  <section>
+    <h2>3. 画面構成</h2>
+
+<pre class="screen-diagram">┌────────────────────────────────────────┐
+│ OneThread                [メモ +]  [≡] │ ← ヘッダー
+├────────────────────────────────────────┤
+│                                        │
+│           今やること                    │
+│     「この段落を書く」                   │ ← フォーカスビュー
+│                                        │
+│     [完了]  [スキップ]  [保留]          │
+│                                        │
+│     ▶ 5分タイマー開始                   │
+│                                        │
+├────────────────────────────────────────┤
+│  ▸ 次のタスク（3件）                    │ ← 折りたたみキュー
+├────────────────────────────────────────┤
+│  ▸ 保留バッファ（7件）                  │ ← 折りたたみバッファ
+├────────────────────────────────────────┤
+│  ▸ 今日の完了（2件）                    │ ← 折りたたみログ
+└────────────────────────────────────────┘</pre>
+  </section>
+
+  <!-- 4. 基本操作 -->
+  <section>
+    <h2>4. 基本操作</h2>
+
+    <h3>タスクを始める</h3>
+    <p>フォーカスビュー中央の入力欄に今やることを1行で入力して Enter または「開始」を押します。</p>
+    <p>タスクが画面に大きく表示されたら、それだけに集中してください。</p>
+
+    <h3>タスクを終えたとき</h3>
+    <p>3つのボタンで次の行動を選びます。</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ボタン</th>
+          <th>意味</th>
+          <th>その後</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>完了</strong></td>
+          <td>やり遂げた</td>
+          <td>ログに記録され、キューの先頭が次のタスクとして表示される</td>
+        </tr>
+        <tr>
+          <td><strong>スキップ</strong></td>
+          <td>今じゃない</td>
+          <td>このタスクはキューの末尾に回り、次のタスクに移る</td>
+        </tr>
+        <tr>
+          <td><strong>保留</strong></td>
+          <td>後で考える</td>
+          <td>保留バッファに移動し、次のタスクに移る</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>浮かんだことをメモする</h3>
+    <p>作業中に別のことを思いついたときは、作業を止めずに即記録できます。</p>
+    <table>
+      <thead>
+        <tr><th>操作</th><th>方法</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>キーボード</td>
+          <td><kbd>m</kbd> キーを押す（画面のどこにいても起動）</td>
+        </tr>
+        <tr>
+          <td>ボタン</td>
+          <td>ヘッダー右の「メモ +」をタップ</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>入力して <kbd>Enter</kbd> を押すと即保存され、モーダルが閉じます。保存先は「保留バッファ」です。今は内容を考えなくて大丈夫です。</p>
+
+    <div class="hint">
+      <strong>入力欄のラベル：</strong>「今は考えなくていい、ただ記録する」と表示されています。分類や整理は後でまとめてやれば十分です。
+    </div>
+
+    <h3>タイマーを使う</h3>
+    <p>「とりあえず5分だけ手をつけてみる」という取り掛かりを支援します。</p>
+    <ol class="steps">
+      <li>フォーカスビューの「▶ タイマー開始」ボタンを押す</li>
+      <li>カウントダウンが始まる（MM:SS 形式で表示）</li>
+      <li>終了すると「完了！」と画面上に表示される（音は鳴りません）</li>
+      <li>「リセット」ボタンで途中終了・再設定できる</li>
+    </ol>
+    <p>タイマーの時間は <kbd>≡</kbd>（設定）から 5 / 10 / 15 / 25 分に変更できます。デフォルトは5分です。</p>
+  </section>
+
+  <!-- 5. 各セクション -->
+  <section>
+    <h2>5. 下部の3つのセクション</h2>
+
+    <p>ヘッダー部分をタップ/クリックすると開閉します。デフォルトでは折りたたまれており、件数だけ表示されます。</p>
+
+    <h3>次のタスク（キュー）</h3>
+    <p>現在のタスクが終わると、キューの先頭が自動的にフォーカスビューに繰り上がります。</p>
+    <table>
+      <thead>
+        <tr><th>操作</th><th>方法</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>順番を変える</td>
+          <td>行をドラッグして並び替える</td>
+        </tr>
+        <tr>
+          <td>今すぐやる</td>
+          <td>「今すぐ」ボタンを押す（現在のタスクはキュー末尾へ）</td>
+        </tr>
+        <tr>
+          <td>タスクを追加</td>
+          <td>セクション下部の入力欄から追加</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>保留バッファ</h3>
+    <p>「メモ +」で記録したことと、「保留」ボタンで保留にしたタスクが、すべてここに入ります。処理のタイミングは自由です。毎日の終わりや余裕があるときにまとめて見直すのが自然な使い方です。</p>
+    <table>
+      <thead>
+        <tr><th>ボタン</th><th>動作</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>今すぐ</strong></td>
+          <td>現在のタスクとして割り込む（緊急対応に）</td>
+        </tr>
+        <tr>
+          <td><strong>キューへ</strong></td>
+          <td>次のタスクリストの末尾に追加する</td>
+        </tr>
+        <tr>
+          <td><strong>削除</strong></td>
+          <td>不要だったものを消す（何もしないまま放置も可）</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>今日の完了</h3>
+    <p>「完了」ボタンを押したタスクが完了時刻付きで並びます。今日分のみ表示されます。グラフや統計はありません。</p>
+  </section>
+
+  <!-- 6. 典型的な使い方 -->
+  <section>
+    <h2>6. 典型的な使い方の流れ</h2>
+
+    <ul class="flow">
+      <li>
+        <span class="num">1</span>
+        <span>朝、今日やることをキューに順番に並べる</span>
+      </li>
+      <li>
+        <span class="num">2</span>
+        <span>先頭のタスクが自動でフォーカスビューに表示される</span>
+      </li>
+      <li>
+        <span class="num">3</span>
+        <span>気が乗らなければ「▶ タイマー開始」でとりあえず5分だけ手をつける</span>
+      </li>
+      <li>
+        <span class="num">4</span>
+        <span>作業中に別のことを思いついたら <kbd>m</kbd> キーで即メモ → 忘れて作業に戻る</span>
+      </li>
+      <li>
+        <span class="num">5</span>
+        <span>タスクが終わったら「完了」→ 次が自動で表示される</span>
+      </li>
+      <li>
+        <span class="num">6</span>
+        <span>今日中にやらなくていいと気づいたら「スキップ」か「保留」</span>
+      </li>
+      <li>
+        <span class="num">7</span>
+        <span>1日の終わりに保留バッファを開いて、明日のキューに昇格させるか削除する</span>
+      </li>
+    </ul>
+
+    <div class="hint">
+      <strong>整理より前進を優先する：</strong> 完璧なリストが作れなくてもOKです。とりあえず1つ入力してタイマーを押すことが、このアプリの正しい使い方です。
+    </div>
+  </section>
+
+  <!-- 7. データについて -->
+  <section>
+    <h2>7. データについて</h2>
+    <p>タスクのデータはすべて<strong>お使いのブラウザ内</strong>（localStorage）に保存されます。サーバーへの送信や外部への同期は一切行いません。</p>
+    <table>
+      <thead>
+        <tr><th>項目</th><th>内容</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>保存場所</td>
+          <td>ブラウザの localStorage（キー名: <kbd>onethread_state</kbd>）</td>
+        </tr>
+        <tr>
+          <td>ページリロード</td>
+          <td>データは消えません</td>
+        </tr>
+        <tr>
+          <td>別のデバイス</td>
+          <td>同期されません（デバイスごとに独立したデータ）</td>
+        </tr>
+        <tr>
+          <td>ブラウザのデータ削除</td>
+          <td>「サイトのデータを削除」を実行するとデータが消えます</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    <p>OneThread &nbsp;|&nbsp; <a href="https://jin-prgrmng.github.io/onethread/" style="color: var(--accent);">アプリを開く</a> &nbsp;|&nbsp; <a href="https://github.com/Jin-prgrmng/onethread" style="color: var(--accent);">GitHub</a></p>
+    <p style="margin-top: 0.4rem;">2026年4月</p>
+  </footer>
+
+</div>
+</body>
+</html>
